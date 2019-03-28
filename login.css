@@ -1,0 +1,43 @@
+@CHARSET 'UTF-8';
+
+/*
+	共通部分
+	・main
+	・h1
+	・error-message
+	・table
+*/
+
+/***** チェックボックス *****/
+.check_box
+{
+    font-size: 15px;
+
+    width: 90%; /*テーブルサイズに合わせる*/
+    margin: 10px auto;
+
+    text-align: left;
+}
+
+/***** ボタン *****/
+.login_btn_box
+{
+    width: 45%;
+    margin: 0 auto;
+    margin-bottom: 5px;
+}
+
+.login_submit_btn
+{
+    width: 120px;
+    height: 50px;
+
+    color: white;
+    border: 0;
+    background-color: #323232;
+}
+
+.login_submit_btn:hover
+{
+    background-color: #59b1eb;
+}
