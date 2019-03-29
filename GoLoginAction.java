@@ -15,7 +15,6 @@ public class GoLoginAction extends ActionSupport implements SessionAware {
 		if(session.isEmpty()){
 			return "sessionError";
 		}
-
 		return SUCCESS;
 	}
 

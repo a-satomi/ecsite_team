@@ -29,7 +29,7 @@ public class LoginAction extends ActionSupport implements SessionAware {
 	@SuppressWarnings("unchecked")
 	public String execute() {
 
-		//セッションタイムアウト確認
+		// セッションタイムアウト確認
 		if(session.isEmpty()){
 			return "sessionError";
 		}
@@ -40,7 +40,7 @@ public class LoginAction extends ActionSupport implements SessionAware {
 
 		String result = ERROR;
 
-		// チェックボックスにチェックを表示・非表示にする
+		// チェックボックスにチェックを表示/非表示にする
 		if(savedUserId == true) {
 			session.put("savedUserId", true);
 			session.put("userId", userId);
@@ -70,7 +70,9 @@ public class LoginAction extends ActionSupport implements SessionAware {
 					// sessionからカート情報を取得する
 					cartInfoDtoList = (List<CartInfoDTO>)session.get("cartInfoDtoList");
 					if(cartInfoDtoList != null) {
-						chengeCartInfo(cartInfoDtoList);
+						if(!chengeCartInfo(cartInfoDtoList)) {
+							return ERROR;
+						}
 					}
 
 					// 遷移先を設定する（カート画面）
@@ -95,22 +97,36 @@ public class LoginAction extends ActionSupport implements SessionAware {
 		return result;
 	}
 
-	public void chengeCartInfo(List<CartInfoDTO> cartInfoDtoList) {
+	/**
+	 * カート情報をDBに作成/更新をする
+	 * @param cartInfoDtoList 画面で選択したカート情報
+	 * @return 作成/更新成功した場合：true、失敗した場合：false
+	 */
+	public boolean chengeCartInfo(List<CartInfoDTO> cartInfoDtoList) {
 
-		CartInfoDAO cartInfoDao = new CartInfoDAO();
 		int count = 0;
+		boolean result = false;
+		CartInfoDAO cartInfoDao = new CartInfoDAO();
 		String tempUserId = session.get("tempUserId").toString();
 
 		for(CartInfoDTO dto : cartInfoDtoList) {
+
+			// ユーザーIDと商品IDが一致するカート情報が存在するかチェック
 			if(cartInfoDao.isExistsCartInfo(userId, dto.getProductId())) {
+
+				// 存在する場合、カート情報テーブルの購入個数を更新/tempUserIdのデータを削除
 				count += cartInfoDao.updateProductCount(userId, dto.getProductId(), dto.getProductCount());
 				cartInfoDao.delete(String.valueOf(dto.getProductId()), tempUserId);
 			} else {
+
+				// 存在しない場合、ユーザーIDをtempUserId→userIdに変更
 				count += cartInfoDao.linkToUserId(tempUserId, userId, dto.getProductId());
 			}
 		}
 
+		// DBへの処理件数とカート情報数が一致しているかをチェック
 		if(count == cartInfoDtoList.size()) {
+			// DBからuserIdに紐づくカート情報を取得
 			List<CartInfoDTO> newCartInfoDtoList = cartInfoDao.getCartInfoDtoList(userId);
 			Iterator<CartInfoDTO> iterator = newCartInfoDtoList.iterator();
 
@@ -118,7 +134,9 @@ public class LoginAction extends ActionSupport implements SessionAware {
 				newCartInfoDtoList = null;
 			}
 			session.put("cartInfoDtoList", newCartInfoDtoList);
+			result = true;
 		}
+		return result;
 	}
 
 	public String getUserId() {
